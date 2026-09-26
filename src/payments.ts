@@ -35,8 +35,9 @@ export function ledger(): Payment[] {
   return [...LEDGER];
 }
 
-// Healthy v1: the idempotency guard runs BEFORE the write. A future
-// controlled regression may move it after savePayment to demo FORGE.
+// Controlled bug fixture (hubris/buggy-idempotency): the idempotency guard
+// was dropped — keys are recorded but never checked, so duplicate requests
+// are processed instead of rejected. FORGE demo target: restore the check.
 export function createPayment(
   userId: string,
   amountCents: number,
@@ -45,9 +46,6 @@ export function createPayment(
   const user = getUser(userId);
   validatePayment(amountCents);
   if (idempotencyKey !== undefined) {
-    if (seenIdempotencyKeys.has(idempotencyKey)) {
-      throw new Error(`duplicate payment for key ${idempotencyKey}`);
-    }
     seenIdempotencyKeys.add(idempotencyKey);
   }
   const payment = savePayment(user.id, amountCents);
