@@ -46,6 +46,9 @@ export function createPayment(
   const user = getUser(userId);
   validatePayment(amountCents);
   if (idempotencyKey !== undefined) {
+    if (seenIdempotencyKeys.has(idempotencyKey)) {
+      throw new Error("duplicate payment");
+    }
     seenIdempotencyKeys.add(idempotencyKey);
   }
   const payment = savePayment(user.id, amountCents);
